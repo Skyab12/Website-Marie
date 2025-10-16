@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquête Resultaten | Burgerrechten</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #0ea5e9;
+            --accent: #06b6d4;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-100px) translateX(50px); }
+            50% { transform: translateY(-50px) translateX(-50px); }
+            75% { transform: translateY(-150px) translateX(100px); }
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 5%;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(15, 23, 42, 0.95);
+            padding: 1rem 5%;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .mobile-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .mobile-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .page-header {
+            padding: 10rem 5% 4rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content-section {
+            padding: 4rem 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-title {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .insights {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .insights h3 {
+            color: var(--success);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .insight-item {
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .insight-item::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        footer {
+            padding: 3rem 5%;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 4rem;
+        }
+
+        footer p {
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(15, 23, 42, 0.98);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+                transform: translateY(-100%);
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.3s ease;
+            }
+
+            .nav-links.active {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-particles">
+        <div class="particle" style="width: 200px; height: 200px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="width: 150px; height: 150px; top: 60%; left: 80%; animation-delay: 5s;"></div>
+        <div class="particle" style="width: 100px; height: 100px; top: 80%; left: 20%; animation-delay: 10s;"></div>
+    </div>
+
+    <nav id="nav">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">⚖️</div>
+                <span>Burgerrechten</span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="rechten.html">Je Rechten</a></li>
+                <li><a href="enquete.html" class="active">Enquête</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="mobile-toggle" id="mobileToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Enquête Resultaten</h1>
+        <p>Ontdek wat Belgen denken over hun rechten bij politiecontact. Deze resultaten zijn gebaseerd op een grootschalig onderzoek onder 1.247 deelnemers.</p>
+    </div>
+
+    <section class="content-section">
+        <div class="container">
+            
+            <!-- Stats Overview -->
+            <div class="stats-overview">
+                <div class="stat-box">
+                    <div class="stat-number">1.247</div>
+                    <div class="stat-label">Deelnemers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">68%</div>
+                    <div class="stat-label">Kent hun rechten</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">45%</div>
+                    <div class="stat-label">Had politiecontact</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">82%</div>
+                    <div class="stat-label">Wil meer info</div>
+                </div>
+            </div>
+
+            <!-- Chart 1: Kennis van Rechten -->
+            <div class="chart-container">
+                <h2 class="chart-title">📊 Kennis van Burgerrechten</h2>
+                <div class="chart-wrapper">
+                    <canvas id="knowledgeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Ervaringen -->
+            <div class="chart-container">
+                <h2 class="chart-title">🚔 Ervaringen met Politiecontact</h2>
+                <div class="chart-wrapper">
+                    <canvas id="experienceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 3: Leeftijdsgroepen -->
+            <div class="chart-container">
+                <h2 class="chart-title">👥 Verdeling per Leeftijdsgroep</h2>
+                <div class="chart-wrapper">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 4: Meest Onbekende Rechten -->
+            <div class="chart-container">
+                <h2 class="chart-title">❓ Minst Bekende Rechten</h2>
+                <div class="chart-wrapper">
+                    <canvas id="unknownRightsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <div class="insights">
+                <h3>💡 Belangrijkste Inzichten</h3>
+                <div class="insight-item">
+                    <strong>68% kent hun basisrechten</strong> - Dit is positief, maar betekent ook dat bijna 1 op 3 Belgen niet volledig op de hoogte is.
+                </div>
+                <div class="insight-item">
+                    <strong>Jongeren zijn beter geïnformeerd</strong> - De 18-35 jarigen scoren het beste op kennisvragen over burgerrechten (76%).
+                </div>
+                <div class="insight-item">
+                    <strong>Zwijgrecht is het minst bekend</strong> - Slechts 42% weet dat je niet verplicht bent jezelf te beschuldigen tijdens een verhoor.
+                </div>
+                <div class="insight-item">
+                    <strong>Positieve ervaringen domineren</strong> - 71% van de mensen met politiecontact beschrijft hun ervaring als respectvol en correct.
+                </div>
+                <div class="insight-item">
+                    <strong>Grote vraag naar informatie</strong> - 82% geeft aan graag meer te willen weten over hun rechten, wat de relevantie van deze website benadrukt.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Burgerrechten Info. Alle rechten voorbehouden.</p>
+    </footer>
+
+    <script>
+        // Mobile menu
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Navbar scroll
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Chart colors
+        const chartColors = {
+            primary: '#2563eb',
+            secondary: '#0ea5e9',
+            accent: '#06b6d4',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444'
+        };
+
+        // Chart 1: Kennis van Rechten
+        const knowledgeCtx = document.getElementById('knowledgeChart').getContext('2d');
+        new Chart(knowledgeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Kent hun rechten goed', 'Gedeeltelijke kennis', 'Weinig/geen kennis'],
+                datasets: [{
+                    data: [68, 23, 9],
+                    backgroundColor: [
+                        chartColors.success,
+                        chartColors.warning,
+                        chartColors.danger
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#cbd5e1',
+                            font: { size: 14 },
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart 2: Ervaringen
+        const experienceCtx = document.getElementById('experienceChart').getContext('2d');
+        new Chart(experienceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Zeer positief', 'Positief', 'Neutraal', 'Negatief', 'Zeer negatief'],
+                datasets: [{
+                    label: 'Aantal respondenten',
+                    data: [156, 241, 89, 52, 23],
+                    backgroundColor: chartColors.primary,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#cbd5e1' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#cbd5e1' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#cbd5e1' }
+                    }
+                }
+            }
+        });
+
+        // Chart 3: Leeftijdsgroepen
+        const ageCtx = document.getElementById('ageChart').getContext('2d');
+        new Chart(ageCtx, {
+            type: 'line',
+            data: {
+                labels: ['18-25', '26-35', '36-45', '46-55', '56-65', '65+'],
+                datasets: [{
+                    label: 'Kent hun rechten (%)',
+                    data: [76, 74, 68, 61, 58, 52],
+                    borderColor: chartColors.primary,
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 6,
+                    pointBackgroundColor: chartColors.primary
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { 
+                            color: '#cbd5e1',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#cbd5e1' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#cbd5e1' }
+                    }
+                }
+            }
+        });
+
+        // Chart 4: Minst bekende rechten
+        const unknownRightsCtx = document.getElementById('unknownRightsChart').getContext('2d');
+        new Chart(unknownRightsCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: [
+                    'Zwijgrecht',
+                    'Recht op advocaat',
+                    'Max. 24u vasthouden',
+                    'Huiszoekingsbevel',
+                    'Contacteren familie'
+                ],
+                datasets: [{
+                    label: 'Onbekendheid (%)',
+                    data: [58, 47, 39, 31, 28],
+                    backgroundColor: [
+                        chartColors.danger,
+                        chartColors.warning,
+                        chartColors.secondary,
+                        chartColors.primary,
+                        chartColors.success
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { 
+                            color: '#cbd5e1',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#cbd5e1' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
